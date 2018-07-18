@@ -134,14 +134,6 @@ void Type (): {}
   ( <INT>|<BOOL>)*
 }
 
-void Main (): {}
-{
- <MAIN> <ACHV> 
- VarDecl()
- (Comando())*
- <FCHV>
-}
-
 void ListaExp (): {} 
 {
   Exp() ListaExpAux() //| ListaExp() <COMMA> Exp()
@@ -150,12 +142,6 @@ void ListaExp (): {}
 void ListaExpAux (): {}
 {
   LOOKAHEAD(2) <COMMA> Exp() ListaExpAux() | Empty()
-}
-
-
-void VarDecl (): {}
-{
-  (<VAR> Type() Id() <FL>)*
 }
 
 void Exp(): {} 
@@ -170,7 +156,7 @@ void Fator(): {}
 
 void Func (): {}
 {
-  (<FUNC> Type() Id() <APAR> (ListArg())? <FPAR> <ACHV> VarDecl() (Comando())* <FCHV>)
+  <FUNC> Type() Id() <APAR> (ListArg())? <FPAR> <ACHV> SecVarDecl() SecCommand() <FCHV>
 }
 
 void Empty (): {}
@@ -188,23 +174,34 @@ void ListArgAux (): {}
   <COMMA> Type() Id()
 }
 
-LugosiTree Lugosi () : {}
+LugosiTree Lugosi (): {}
 {
-  Main()
-  (Func())?
-  <EOF>
-  {return new LugosiTree();}
+	Main() (Func())* <EOF>
+		{return new LugosiTree();}
 }
 
-void Comando(): {}
-{ LOOKAHEAD(2)
-  Id() <ATRIB> Exp() <FL>
-| Id() <APAR> (ListaExp())? <FPAR> <FL>
-| <IF> <APAR> Exp() <FPAR> BlocoComando() <FL>
-| <WHILE> <APAR> Exp() <FPAR> <DO> BlocoComando() <FL>
-| <DO> BlocoComando() <WHILE> <APAR> Exp() <FPAR> <FL>
-| <RETURN> Exp() <FL>
-| <PRINT> <APAR> Exp() <FPAR> <FL>
+void Main (): {}
+{
+	<MAIN> <ACHV> 
+		SecVarDecl()
+		SecCommand()
+	<FCHV>
 }
 
-void BlocoComando(): {} { <ACHV> (Comando())* <FCHV> }
+void SecVarDecl (): {}
+{
+	(<VAR> Type() Id() <FL>)*
+}
+
+void SecCommand (): {}
+{ (LOOKAHEAD(2)
+	 Id() <ATRIB> Exp() <FL>
+	 | Id() <APAR> (ListaExp())? <FPAR> <FL>
+	 | <IF> <APAR> Exp() <FPAR> BlocoComando() <FL>
+	 | <WHILE> <APAR> Exp() <FPAR> <DO> BlocoComando() <FL>
+	 | <DO> BlocoComando() <WHILE> <APAR> Exp() <FPAR> <FL>
+	 | <RETURN> Exp() <FL>
+	 | <PRINT> <APAR> Exp() <FPAR> <FL>)*
+}
+
+void BlocoComando (): {} { <ACHV> SecCommand() <FCHV> }
