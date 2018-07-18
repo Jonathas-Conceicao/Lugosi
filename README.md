@@ -30,6 +30,6 @@ class VarDecl {
 }
 
 class Type {}
-class Int extendes Type {}
-class Bool extands Type {}
+class Int extends Type {}
+class Bool extends Type {}
 ```

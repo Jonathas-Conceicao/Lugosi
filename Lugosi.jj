@@ -3,31 +3,43 @@ import java.io.*;
 import java.util.ArrayList;
 
 /* Language's sintatic class */
-// class Lugosi {
-// 	Main main;
-// 	ArrayList <Func> funcs;
-// }
-
-// class Main {
-// 	ArrayList <VarDecl> decls;
-// 	ArrayList <Commands> commands;
-// }
-
-// class VarDecl {
-// 	String id;
-// 	Type tipo;
-// }
-
-// class Type {}
-// class Int extendes Type {}
-// class Bool extands Type {}
 
 public class Lugosi {
-	public static void main(String args[]) throws ParseException,IOException {
-		Lugosi parser = new Lugosi(new FileInputStream(args[0]));
-		parser.Lugosi();
+	public static void main(String args[]) throws Exception{
+		FileInputStream fs = new FileInputStream(new File(args[0]));
+		Lugosi parser = new Lugosi(fs);
+		LugosiTree tree = parser.Lugosi();
+		pprint(tree);
+		geraCodigo(tree);
 	}
+	public static void pprint(LugosiTree prog){/*??????*/}
+	public static void geraCodigo(LugosiTree prog){/*??????*/}
 }
+
+class LugosiTree {
+	Main main;
+	ArrayList <Func> funcs;
+}
+
+class Main {
+	ArrayList <VarDecl> decls;
+	ArrayList <Commands> commands;
+}
+
+class VarDecl {
+	String id;
+	Type tipo;
+}
+
+class Func {
+}
+
+class Commands {
+}
+
+class Type {}
+class Int extends Type {}
+class Bool extends Type {}
 
 PARSER_END(Lugosi)
 
@@ -176,11 +188,12 @@ void ListArgAux (): {}
   <COMMA> Type() Id()
 }
 
-void Lugosi () : {}
-{ 
+LugosiTree Lugosi () : {}
+{
   Main()
   (Func())?
   <EOF>
+  {return new LugosiTree();}
 }
 
 void Comando(): {}
