@@ -154,24 +154,9 @@ void Fator(): {}
   LOOKAHEAD(2) Id() | Id() <APAR> (ListaExp())? <FPAR> | Literal() | <CONSTB>
 }
 
-void Func (): {}
-{
-  <FUNC> Type() Id() <APAR> (ListArg())? <FPAR> <ACHV> SecVarDecl() SecCommand() <FCHV>
-}
-
 void Empty (): {}
 {
   ""|<EOF>
-}
-
-void ListArg (): {}
-{
-  Type() Id() (ListArgAux())* //| ListArg() <COMMA> Type() Id()
-}
-
-void ListArgAux (): {}
-{
-  <COMMA> Type() Id()
 }
 
 LugosiTree Lugosi (): {}
@@ -188,10 +173,20 @@ void Main (): {}
 	<FCHV>
 }
 
+void Func (): {}
+{
+	<FUNC> Type() Id() <APAR> ListArg() <FPAR> <ACHV>
+		SecVarDecl()
+		SecCommand()
+	<FCHV>
+}
+
 void SecVarDecl (): {}
 {
 	(<VAR> Type() Id() <FL>)*
 }
+
+void ListArg (): {} { Type() Id() (<COMMA> Type() Id())* }
 
 void SecCommand (): {}
 { (LOOKAHEAD(2)
