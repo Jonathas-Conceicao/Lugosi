@@ -121,90 +121,70 @@ void EndUnderscore (): {}
 
 void Id (): {}
 {
-  (<letra>)(AlphaNumeric())*(EndUnderscore())*
+	<letra>(AlphaNumeric())*(EndUnderscore())*
 }
 
 void Literal (): {}
 {
-    Digits() FracaoOpt() ExpOpt()
+	Digits() FracaoOpt() ExpOpt()
 }
 
 void Type (): {}
 {
-  ( <INT>|<BOOL>)*
+	(<INT>|<BOOL>)*
+}
+
+LugosiTree Lugosi (): {}
+{
+	Main() (Func())* <EOF>
+		{return new LugosiTree();}
 }
 
 void Main (): {}
 {
- <MAIN> <ACHV> 
- VarDecl()
- (Comando())*
- <FCHV>
-}
-
-void ListaExp (): {} 
-{
-  Exp() ListaExpAux() //| ListaExp() <COMMA> Exp()
-} // With a single ID for test propouses
-
-void ListaExpAux (): {}
-{
-  LOOKAHEAD(2) <COMMA> Exp() ListaExpAux() | Empty()
-}
-
-
-void VarDecl (): {}
-{
-  (<VAR> Type() Id() <FL>)*
-}
-
-void Exp(): {} 
-{
-  <APAR> Exp() Op() Exp() <FPAR> |  Fator()
-}
-
-void Fator(): {} 
-{
-  LOOKAHEAD(2) Id() | Id() <APAR> (ListaExp())? <FPAR> | Literal() | <CONSTB>
+	<MAIN> <ACHV> 
+		SecVarDecl()
+		SecCommand()
+	<FCHV>
 }
 
 void Func (): {}
 {
-  (<FUNC> Type() Id() <APAR> (ListArg())? <FPAR> <ACHV> VarDecl() (Comando())* <FCHV>)
+	<FUNC> Type() Id() <APAR> ListArg() <FPAR> <ACHV>
+		SecVarDecl()
+		SecCommand()
+	<FCHV>
 }
 
-void Empty (): {}
+void SecVarDecl (): {}
 {
-  ""|<EOF>
+	(<VAR> Type() Id() <FL>)*
 }
 
-void ListArg (): {}
+void ListArg (): {} { Type() Id() (<COMMA> Type() Id())* }
+
+void SecCommand (): {}
+{ (Id() ( <ATRIB> Exp() <FL> | <APAR> ListaExp() <FPAR> <FL>)
+	 | <IF> <APAR> Exp() <FPAR> BlocoComando() <FL>
+	 | <WHILE> <APAR> Exp() <FPAR> <DO> BlocoComando() <FL>
+	 | <DO> BlocoComando() <WHILE> <APAR> Exp() <FPAR> <FL>
+	 | <RETURN> Exp() <FL>
+	 | <PRINT> <APAR> Exp() <FPAR> <FL>)*
+}
+
+void ListaExp (): {} 
 {
-  Type() Id() (ListArgAux())* //| ListArg() <COMMA> Type() Id()
+  Exp() (<COMMA> Exp())*
 }
 
-void ListArgAux (): {}
+void Exp(): {} 
 {
-  <COMMA> Type() Id()
+  <APAR> Exp() Op() Exp() <FPAR> | Fator()
 }
 
-LugosiTree Lugosi () : {}
+void Fator(): {} 
 {
-  Main()
-  (Func())?
-  <EOF>
-  {return new LugosiTree();}
+  Id() (<APAR> ListaExp() <FPAR>)? | Literal() | <CONSTB>
 }
 
-void Comando(): {}
-{ LOOKAHEAD(2)
-  Id() <ATRIB> Exp() <FL>
-| Id() <APAR> (ListaExp())? <FPAR> <FL>
-| <IF> <APAR> Exp() <FPAR> BlocoComando() <FL>
-| <WHILE> <APAR> Exp() <FPAR> <DO> BlocoComando() <FL>
-| <DO> BlocoComando() <WHILE> <APAR> Exp() <FPAR> <FL>
-| <RETURN> Exp() <FL>
-| <PRINT> <APAR> Exp() <FPAR> <FL>
-}
-
-void BlocoComando(): {} { <ACHV> (Comando())* <FCHV> }
+void BlocoComando (): {} { <ACHV> SecCommand() <FCHV> }
