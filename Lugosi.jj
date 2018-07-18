@@ -121,17 +121,17 @@ void EndUnderscore (): {}
 
 void Id (): {}
 {
-  <letra>(AlphaNumeric())*(EndUnderscore())*
+	<letra>(AlphaNumeric())*(EndUnderscore())*
 }
 
 void Literal (): {}
 {
-    Digits() FracaoOpt() ExpOpt()
+	Digits() FracaoOpt() ExpOpt()
 }
 
 void Type (): {}
 {
-  ( <INT>|<BOOL>)*
+	(<INT>|<BOOL>)*
 }
 
 LugosiTree Lugosi (): {}
@@ -164,9 +164,7 @@ void SecVarDecl (): {}
 void ListArg (): {} { Type() Id() (<COMMA> Type() Id())* }
 
 void SecCommand (): {}
-{ (LOOKAHEAD(2)
-	 Id() <ATRIB> Exp() <FL>
-	 | Id() <APAR> ListaExp() <FPAR> <FL>
+{ (Id() ( <ATRIB> Exp() <FL> | <APAR> ListaExp() <FPAR> <FL>)
 	 | <IF> <APAR> Exp() <FPAR> BlocoComando() <FL>
 	 | <WHILE> <APAR> Exp() <FPAR> <DO> BlocoComando() <FL>
 	 | <DO> BlocoComando() <WHILE> <APAR> Exp() <FPAR> <FL>
