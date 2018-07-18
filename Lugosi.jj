@@ -121,7 +121,7 @@ void EndUnderscore (): {}
 
 void Id (): {}
 {
-  (<letra>)(AlphaNumeric())*(EndUnderscore())*
+  <letra>(AlphaNumeric())*(EndUnderscore())*
 }
 
 void Literal (): {}
@@ -186,7 +186,7 @@ void Exp(): {}
 
 void Fator(): {} 
 {
-  LOOKAHEAD(2) Id() | Id() <APAR> ListaExp() <FPAR> | Literal() | <CONSTB>
+  Id() (<APAR> ListaExp() <FPAR>)? | Literal() | <CONSTB>
 }
 
 void BlocoComando (): {} { <ACHV> SecCommand() <FCHV> }
