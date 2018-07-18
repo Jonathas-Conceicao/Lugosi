@@ -1,0 +1,8 @@
+main {
+  var int x; var int y;
+  if ((x > y)) {
+     print(x);
+  } else {
+    print(y);
+  };
+}

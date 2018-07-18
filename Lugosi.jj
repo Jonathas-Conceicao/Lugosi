@@ -1,0 +1,197 @@
+PARSER_BEGIN(Lugosi)
+import java.io.*;
+import java.util.ArrayList;
+
+/* Language's sintatic class */
+// class Lugosi {
+// 	Main main;
+// 	ArrayList <Func> funcs;
+// }
+
+// class Main {
+// 	ArrayList <VarDecl> decls;
+// 	ArrayList <Commands> commands;
+// }
+
+// class VarDecl {
+// 	String id;
+// 	Type tipo;
+// }
+
+// class Type {}
+// class Int extendes Type {}
+// class Bool extands Type {}
+
+public class Lugosi {
+	public static void main(String args[]) throws ParseException,IOException {
+		Lugosi parser = new Lugosi(new FileInputStream(args[0]));
+		parser.Lugosi();
+	}
+}
+
+PARSER_END(Lugosi)
+
+SKIP :
+{
+  " "
+| "\t"
+| "\n"
+| "\r"
+}
+
+TOKEN :
+{
+  <MAIN: "main">
+| <APAR: "(">
+| <FPAR: ")">
+| <ACHV: "{">
+| <FCHV: "}">
+| <ATRIB: ":=">
+| <FL: ";">
+| <IF: "if">
+| <WHILE: "while">
+| <DO: "do">
+| <RETURN: "return">
+| <PRINT: "print">
+| <INT: "int">
+| <BOOL: "bool">
+| <FUNC: "function">
+| <CONSTB:   "true"|"false">
+| <COMMA: ",">
+| <UNDER: "_">
+| <VAR: "var">
+}
+
+TOKEN :
+{
+  <plus: "+">
+| <minus: "-">
+| <e: "E">
+| <OPaux: ("*" | "/" | "&&" | "||" | "<" | ">" | "==")>
+//  | <ID: ["a"-"z","A"-"Z"] ( ["a"-"z","A"-"Z","0"-"9"])*>
+}
+
+TOKEN :
+{
+  <letra: ["a"-"z","A"-"Z"]>
+| <digito: ["0"-"9"]>
+}
+
+void Op (): {}
+{
+  <OPaux> | <minus> | <plus>
+}
+
+void Digits (): {}
+{ 
+  (<digito>)+
+}
+
+void FracaoOpt (): {}
+{
+  (<COMMA> Digits())?
+}
+
+void ExpOpt (): {}
+{
+  (<e>(<plus> | <minus>)? Digits())?
+}
+
+void AlphaNumeric (): {}
+{
+  <letra>|<digito>
+}
+
+void EndUnderscore (): {}
+{
+  <UNDER>(AlphaNumeric())+
+}
+
+void Id (): {}
+{
+  (<letra>)(AlphaNumeric())*(EndUnderscore())*
+}
+
+void Literal (): {}
+{
+    Digits() FracaoOpt() ExpOpt()
+}
+
+void Type (): {}
+{
+  ( <INT>|<BOOL>)*
+}
+
+void Main (): {}
+{
+ <MAIN> <ACHV> 
+ VarDecl()
+ (Comando())*
+ <FCHV>
+}
+
+void ListaExp (): {} 
+{
+  Exp() ListaExpAux() //| ListaExp() <COMMA> Exp()
+} // With a single ID for test propouses
+
+void ListaExpAux (): {}
+{
+  LOOKAHEAD(2) <COMMA> Exp() ListaExpAux() | Empty()
+}
+
+
+void VarDecl (): {}
+{
+  (<VAR> Type() Id() <FL>)*
+}
+
+void Exp(): {} 
+{
+  <APAR> Exp() Op() Exp() <FPAR> |  Fator()
+}
+
+void Fator(): {} 
+{
+  LOOKAHEAD(2) Id() | Id() <APAR> (ListaExp())? <FPAR> | Literal() | <CONSTB>
+}
+
+void Func (): {}
+{
+  (<FUNC> Type() Id() <APAR> (ListArg())? <FPAR> <ACHV> VarDecl() (Comando())* <FCHV>)
+}
+
+void Empty (): {}
+{
+  ""|<EOF>
+}
+
+void ListArg (): {}
+{
+  Type() Id() (ListArgAux())* //| ListArg() <COMMA> Type() Id()
+}
+
+void ListArgAux (): {}
+{
+  <COMMA> Type() Id()
+}
+
+void Lugosi () : {}
+{ 
+  Main()
+  (Func())?
+  <EOF>
+}
+
+void Comando(): {}
+{ LOOKAHEAD(2)
+  Id() <ATRIB> Exp() <FL>
+| Id() <APAR> (ListaExp())? <FPAR> <FL>
+| <IF> <APAR> Exp() <FPAR> BlocoComando() <FL>
+| <WHILE> <APAR> Exp() <FPAR> <DO> BlocoComando() <FL>
+| <DO> BlocoComando() <WHILE> <APAR> Exp() <FPAR> <FL>
+| <RETURN> Exp() <FL>
+| <PRINT> <APAR> Exp() <FPAR> <FL>
+}
+
+void BlocoComando(): {} { <ACHV> (Comando())* <FCHV> }

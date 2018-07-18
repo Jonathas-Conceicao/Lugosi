@@ -1,0 +1,9 @@
+main {
+  var int i;
+  x := 10;
+  while ((x > 0)) do {
+    print(x);
+    x := (x - 1);
+  };
+  return 0;
+}
