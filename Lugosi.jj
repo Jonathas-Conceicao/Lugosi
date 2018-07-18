@@ -134,31 +134,6 @@ void Type (): {}
   ( <INT>|<BOOL>)*
 }
 
-void ListaExp (): {} 
-{
-  Exp() ListaExpAux() //| ListaExp() <COMMA> Exp()
-} // With a single ID for test propouses
-
-void ListaExpAux (): {}
-{
-  LOOKAHEAD(2) <COMMA> Exp() ListaExpAux() | Empty()
-}
-
-void Exp(): {} 
-{
-  <APAR> Exp() Op() Exp() <FPAR> |  Fator()
-}
-
-void Fator(): {} 
-{
-  LOOKAHEAD(2) Id() | Id() <APAR> (ListaExp())? <FPAR> | Literal() | <CONSTB>
-}
-
-void Empty (): {}
-{
-  ""|<EOF>
-}
-
 LugosiTree Lugosi (): {}
 {
 	Main() (Func())* <EOF>
@@ -191,12 +166,27 @@ void ListArg (): {} { Type() Id() (<COMMA> Type() Id())* }
 void SecCommand (): {}
 { (LOOKAHEAD(2)
 	 Id() <ATRIB> Exp() <FL>
-	 | Id() <APAR> (ListaExp())? <FPAR> <FL>
+	 | Id() <APAR> ListaExp() <FPAR> <FL>
 	 | <IF> <APAR> Exp() <FPAR> BlocoComando() <FL>
 	 | <WHILE> <APAR> Exp() <FPAR> <DO> BlocoComando() <FL>
 	 | <DO> BlocoComando() <WHILE> <APAR> Exp() <FPAR> <FL>
 	 | <RETURN> Exp() <FL>
 	 | <PRINT> <APAR> Exp() <FPAR> <FL>)*
+}
+
+void ListaExp (): {} 
+{
+  Exp() (<COMMA> Exp())*
+}
+
+void Exp(): {} 
+{
+  <APAR> Exp() Op() Exp() <FPAR> | Fator()
+}
+
+void Fator(): {} 
+{
+  LOOKAHEAD(2) Id() | Id() <APAR> ListaExp() <FPAR> | Literal() | <CONSTB>
 }
 
 void BlocoComando (): {} { <ACHV> SecCommand() <FCHV> }
