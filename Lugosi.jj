@@ -97,6 +97,34 @@ class FCall implements Command, Fator{
 	FCall (String i, ArrayList<Exp> e) {this.id = i;this.exps=e;}
 }
 
+class If implements Command {
+	Exp bexp;
+	ArrayList<Command> cmds;
+	If (Exp b, ArrayList<Command> c) {this.bexp = b;this.cmds = c;}
+}
+
+class While implements Command {
+	Exp bexp;
+	ArrayList<Command> cmds;
+	While (Exp b, ArrayList<Command> c) {this.bexp = b;this.cmds = c;}
+}
+
+class Do implements Command {
+	Exp bexp;
+	ArrayList<Command> cmds;
+	Do (Exp b, ArrayList<Command> c) {this.bexp = b;this.cmds = c;}
+}
+
+class Return implements Command {
+	Exp exp;
+	Return (Exp b) {this.exp = b;}
+}
+
+class Print implements Command {
+	Exp exp;
+  Print (Exp b) {this.exp = b;}
+}
+
 class OExp implements Exp {
 	Exp a, b;
 	String op;
@@ -122,7 +150,7 @@ PARSER_END(Lugosi)
 
 SKIP :
 {
-  " "
+	" "
 | "\t"
 | "\n"
 | "\r"
@@ -130,7 +158,7 @@ SKIP :
 
 TOKEN :
 {
-  <MAIN: "main">
+	<MAIN: "main">
 | <APAR: "(">
 | <FPAR: ")">
 | <ACHV: "{">
@@ -153,7 +181,7 @@ TOKEN :
 
 TOKEN :
 {
-  <plus: "+">
+	<plus: "+">
 | <minus: "-">
 | <e: "E">
 | <OPaux: ("*" | "/" | "&&" | "||" | "<" | ">" | "==")>
@@ -161,13 +189,13 @@ TOKEN :
 
 TOKEN :
 {
-  <letra: ["a"-"z","A"-"Z"]>
+	<letra: ["a"-"z","A"-"Z"]>
 | <digito: ["0"-"9"]>
 }
 
 String Op (): {Token t;}
 {
-  t = <OPaux>   {return t.image;}
+	t = <OPaux>   {return t.image;}
 	| t = <minus> {return t.image;}
 	| t = <plus> {return t.image;}
 }
@@ -236,7 +264,7 @@ Type Type (): {
 LugosiTree Lugosi (): {
 	Main main=null;
 	ArrayList<Func> flist = new ArrayList<Func>();
-  Func auxFunc = null;
+	Func auxFunc = null;
 } {
 	main = Main() (auxFunc = Func() {flist.add(auxFunc);})* <EOF>
 		{return new LugosiTree(main, flist);}
@@ -298,13 +326,15 @@ Arg Arg (): {
 
 Command Command (): {
 	Command cmd;
+	Exp exp;
+	ArrayList<Command> cmds;
 } {
 	cmd = AttribOrFCall() {return cmd;}
-	 | <IF> <APAR> Exp() <FPAR> BlocoComando() <FL> {return null;}
-	 | <WHILE> <APAR> Exp() <FPAR> <DO> BlocoComando() <FL> {return null;}
-	 | <DO> BlocoComando() <WHILE> <APAR> Exp() <FPAR> <FL> {return null;}
-	 | <RETURN> Exp() <FL> {return null;}
-	 | <PRINT> <APAR> Exp() <FPAR> <FL> {return null;}
+	| <IF> <APAR> exp = Exp() <FPAR> cmds = BlocoComando() <FL> {return new If(exp, cmds);}
+	| <WHILE> <APAR> exp = Exp() <FPAR> <DO> cmds = BlocoComando() <FL> {return new While(exp, cmds);}
+	| <DO> cmds = BlocoComando() <WHILE> <APAR> exp = Exp() <FPAR> <FL> {return new Do(exp, cmds);}
+	| <RETURN> exp = Exp() <FL> {return new Return(exp);}
+	| <PRINT> <APAR> exp = Exp() <FPAR> <FL> {return new Print(exp);}
 }
 
 Command AttribOrFCall (): {
@@ -348,4 +378,9 @@ Fator Fator(): {
 	| t = <CONSTB> {return t.image.equals("true") ? new True() : new False();}
 }
 
-void BlocoComando (): {} { <ACHV> (Command())* <FCHV> }
+ArrayList<Command> BlocoComando (): {
+	ArrayList<Command> cmds = new ArrayList<Command>();
+	Command auxCmd;
+}{
+	<ACHV> (auxCmd = Command() {cmds.add(auxCmd);})* <FCHV> {return cmds;}
+}
