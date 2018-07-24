@@ -73,15 +73,50 @@ class Arg {
 	}
 }
 
-class Command {
+interface Command {}
+class Attribution implements Command {
+	String id;
+  Exp exp;
 
-	Command () {
+	Attribution (String i, Exp e) {
+		this.id = i;
+		this.exp = e;
 	}
 }
+// class AA implements Command {
+// }
 
-class Type {}
-class Int extends Type {}
-class Bool extends Type {}
+interface Type {}
+class Int implements Type {}
+class Bool implements Type {}
+
+interface Exp {}
+class OExp implements Exp {
+	Exp a, b;
+  String op;
+
+	OExp (Exp a, String op, Exp b) {
+		this.a = a;
+		this.op = op;
+		this.b = b;
+	}
+}
+interface Fator extends Exp {}
+class Id implements Fator{
+	String id;
+	Id (String i) {this.id = i;}
+}
+class FCall implements Fator, Command{
+	String id;
+	ArrayList<Exp> exps;
+	FCall (String i, ArrayList<Exp> e) {this.id = i;this.exps=e;}
+}
+class Literal implements Fator{
+	int value; // TODO: (Maybe @Bretana) Implementar retorno de valores reais
+	Literal (int v) {this.value = v;}
+}
+class True implements Fator{}
+class False implements Fator{}
 
 PARSER_END(Lugosi)
 
@@ -130,14 +165,19 @@ TOKEN :
 | <digito: ["0"-"9"]>
 }
 
-void Op (): {}
+String Op (): {Token t;}
 {
-  <OPaux> | <minus> | <plus>
+  t = <OPaux>   {return t.image;}
+	| t = <minus> {return t.image;}
+	| t = <plus> {return t.image;}
 }
 
-void Digits (): {}
-{ 
-  (<digito>)+
+int Digits (): {
+	String sDig = "";
+	Token t;
+} { 
+	(t =<digito> {sDig += t.image;})+
+		{return Integer.parseInt(sDig);}
 }
 
 void FracaoOpt (): {}
@@ -150,28 +190,40 @@ void ExpOpt (): {}
   (<e>(<plus> | <minus>)? Digits())?
 }
 
-void AlphaNumeric (): {}
-{
-  <letra>|<digito>
+String AlphaNumeric (): {
+	Token token;
+} {
+	token = <letra> {return token.image;}
+	| token = <digito> {return token.image;}
 }
 
-void EndUnderscore (): {}
-{
-  <UNDER>(AlphaNumeric())+
-}
-
-String Id (): { // TODO: Write to ID
+String EndUnderscore (): {
 	String id = new String();
 	String auxString;
-	char auxChar;
+	Token token;
 } {
-	<letra>(AlphaNumeric())*(EndUnderscore())*
+	token = <UNDER> {id += token.image;}
+	(auxString = AlphaNumeric() {id += auxString;})+
 		{return id;}
 }
 
-void Literal (): {}
+String Id (): {
+	String id = new String();
+	String auxString;
+	Token token;
+} {
+	token = <letra> {id += token.image;}
+	(auxString = AlphaNumeric()  {id += auxString;})*
+	(auxString = EndUnderscore() {id += auxString;})*
+		{return id;}
+}
+
+Literal Literal (): { // TODO: (Maybe @Bretana) Implementar retorno de valores reais
+	int digits;
+}
 {
-	Digits() FracaoOpt() ExpOpt()
+	digits = Digits() FracaoOpt() ExpOpt()
+		{return new Literal(digits);}
 }
 
 Type Type (): {
@@ -237,36 +289,63 @@ ArrayList<Arg> ListArg (): {
 }
 
 Arg Arg (): {
-	Type type = null;
-	String name = null;
+	Type type;
+	String name;
 } {
 	type = Type() name = Id()
 		{return new Arg(type, name);}
 }
 
-Command Command (): {} // TODO: Implement Command class
-{ (Id() ( <ATRIB> Exp() <FL> | <APAR> ListaExp() <FPAR> <FL>)
-	 | <IF> <APAR> Exp() <FPAR> BlocoComando() <FL>
-	 | <WHILE> <APAR> Exp() <FPAR> <DO> BlocoComando() <FL>
-	 | <DO> BlocoComando() <WHILE> <APAR> Exp() <FPAR> <FL>
-	 | <RETURN> Exp() <FL>
-	 | <PRINT> <APAR> Exp() <FPAR> <FL>)
-		{return new Command();} // TODO: Implement Command class
+Command Command (): {
+	Command cmd;
+} {
+	cmd = AttribOrFCall() {return cmd;}
+	 | <IF> <APAR> Exp() <FPAR> BlocoComando() <FL> {return null;}
+	 | <WHILE> <APAR> Exp() <FPAR> <DO> BlocoComando() <FL> {return null;}
+	 | <DO> BlocoComando() <WHILE> <APAR> Exp() <FPAR> <FL> {return null;}
+	 | <RETURN> Exp() <FL> {return null;}
+	 | <PRINT> <APAR> Exp() <FPAR> <FL> {return null;}
 }
 
-void ListaExp (): {} 
-{
-  Exp() (<COMMA> Exp())*
+Command AttribOrFCall (): {
+	String id;
+	ArrayList<Exp> exps;
+  Exp auxExp;
+} {
+	id = Id()
+		( <ATRIB> auxExp = Exp() <FL> {return new Attribution(id, auxExp);}
+		| <APAR> exps = ListaExp() {return new FCall(id, exps);} <FPAR> <FL>)
 }
 
-void Exp(): {} 
-{
-  <APAR> Exp() Op() Exp() <FPAR> | Fator()
+ArrayList<Exp> ListaExp (): {
+	ArrayList<Exp> exps = new ArrayList<Exp>();
+	Exp auxExp;
+} {
+	auxExp = Exp() {exps.add(auxExp);}
+	(<COMMA> auxExp = Exp() {exps.add(auxExp);})*
+		{return exps;}
 }
 
-void Fator(): {} 
+Exp Exp(): {
+	Exp a, b;
+	String op;
+	Fator f;
+} 
 {
-  Id() (<APAR> ListaExp() <FPAR>)? | Literal() | <CONSTB>
+  <APAR> a = Exp() op = Op() b = Exp() <FPAR> {return new OExp(a, op, b);}
+	| f = Fator() {return f;}
+}
+
+Fator Fator(): {
+	String id;
+	ArrayList<Exp> exps = null;
+	Literal l;
+	Token t;
+} 
+{
+  id = Id() (<APAR> exps = ListaExp() <FPAR>)? {return new FCall(id, exps);}
+	| l = Literal() {return l;}
+	| t = <CONSTB> {return t.image.equals("true") ? new True() : new False();}
 }
 
 void BlocoComando (): {} { <ACHV> (Command())* <FCHV> }
