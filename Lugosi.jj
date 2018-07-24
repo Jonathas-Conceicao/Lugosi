@@ -74,42 +74,42 @@ class Arg {
 }
 
 interface Command {}
+interface Type {}
+interface Exp {}
+interface Fator extends Exp {}
+
+class Int implements Type {}
+class Bool implements Type {}
+
 class Attribution implements Command {
 	String id;
-  Exp exp;
+	Exp exp;
 
 	Attribution (String i, Exp e) {
 		this.id = i;
 		this.exp = e;
 	}
 }
-// class AA implements Command {
-// }
 
-interface Type {}
-class Int implements Type {}
-class Bool implements Type {}
+class FCall implements Command, Fator{
+	String id;
+	ArrayList<Exp> exps;
+	FCall (String i, ArrayList<Exp> e) {this.id = i;this.exps=e;}
+}
 
-interface Exp {}
 class OExp implements Exp {
 	Exp a, b;
-  String op;
-
+	String op;
 	OExp (Exp a, String op, Exp b) {
 		this.a = a;
 		this.op = op;
 		this.b = b;
 	}
 }
-interface Fator extends Exp {}
+
 class Id implements Fator{
 	String id;
 	Id (String i) {this.id = i;}
-}
-class FCall implements Fator, Command{
-	String id;
-	ArrayList<Exp> exps;
-	FCall (String i, ArrayList<Exp> e) {this.id = i;this.exps=e;}
 }
 class Literal implements Fator{
 	int value; // TODO: (Maybe @Bretana) Implementar retorno de valores reais
