@@ -2,8 +2,6 @@ PARSER_BEGIN(Lugosi)
 import java.io.*;
 import java.util.ArrayList;
 
-/* Language's sintatic class */
-
 public class Lugosi {
 	public static void main(String args[]) throws Exception{
 		FileInputStream fs = new FileInputStream(new File(args[0]));
@@ -12,33 +10,73 @@ public class Lugosi {
 		pprint(tree);
 		geraCodigo(tree);
 	}
-	public static void pprint(LugosiTree prog){/*??????*/}
-	public static void geraCodigo(LugosiTree prog){/*??????*/}
+	public static void pprint(LugosiTree prog){/* TODO: @Bretana pprint */}
+	public static void geraCodigo(LugosiTree prog){/* TODO: @Bretana Código em outra linguagem */}
 }
 
 class LugosiTree {
 	Main main;
-	ArrayList <Func> funcs;
-	LugosiTree (Main m, ArrayList <Func> f){
+	ArrayList<Func> funcs;
+
+	LugosiTree (Main m, ArrayList<Func> f){
 		this.main = m;
 		this.funcs = f;
 	}
 }
 
 class Main {
-	ArrayList <VarDecl> decls;
-	ArrayList <Commands> commands;
+	ArrayList<VarDecl> decls;
+	ArrayList<Command> commands;
+
+	Main (ArrayList<VarDecl> d, ArrayList<Command> c) {
+		this.decls = d;
+		this.commands = c;
+	}
 }
 
 class VarDecl {
 	String id;
-	Type tipo;
+	Type type;
+
+	VarDecl (String i, Type t) {
+		this.id = i;
+		this.type = t;
+	}
 }
 
 class Func {
+	Type type;
+	String name;
+	ArrayList<Arg> args;
+	ArrayList<VarDecl> decls;
+	ArrayList<Command> commands;
+
+	Func (Type t, String n,
+				ArrayList<Arg> a,
+				ArrayList<VarDecl> d,
+				ArrayList<Command> c) {
+		this.type = t;
+		this.name = n;
+		this.args = a;
+		this.decls = d;
+		this.commands = c;
+	}
 }
 
-class Commands {
+class Arg {
+	Type type;
+	String name;
+
+	Arg (Type t, String n) {
+		this.type = t;
+		this.name = n;
+	}
+}
+
+class Command {
+
+	Command () {
+	}
 }
 
 class Type {}
@@ -84,7 +122,6 @@ TOKEN :
 | <minus: "-">
 | <e: "E">
 | <OPaux: ("*" | "/" | "&&" | "||" | "<" | ">" | "==")>
-//  | <ID: ["a"-"z","A"-"Z"] ( ["a"-"z","A"-"Z","0"-"9"])*>
 }
 
 TOKEN :
@@ -123,9 +160,13 @@ void EndUnderscore (): {}
   <UNDER>(AlphaNumeric())+
 }
 
-void Id (): {}
-{
+String Id (): { // TODO: Write to ID
+	String id = new String();
+	String auxString;
+	char auxChar;
+} {
 	<letra>(AlphaNumeric())*(EndUnderscore())*
+		{return id;}
 }
 
 void Literal (): {}
@@ -133,51 +174,84 @@ void Literal (): {}
 	Digits() FracaoOpt() ExpOpt()
 }
 
-void Type (): {}
-{
-	(<INT>|<BOOL>)*
+Type Type (): {
+	Type type = null;
+} {
+	(<INT>{type = new Int();}|<BOOL>{type = new Bool();})*
+		{return type;}
 }
 
-LugosiTree Lugosi ():
-	{
-		Main m=null;
-		ArrayList <Func> f = null;
-	}
-	{
-		Main() (Func())* <EOF>
-			{return new LugosiTree(m, f);}
-	}
+LugosiTree Lugosi (): {
+	Main main=null;
+	ArrayList<Func> flist = new ArrayList<Func>();
+  Func auxFunc = null;
+} {
+	main = Main() (auxFunc = Func() {flist.add(auxFunc);})* <EOF>
+		{return new LugosiTree(main, flist);}
+}
 
-void Main (): {}
-{
+Main Main (): {
+	ArrayList<VarDecl> decls = new ArrayList<VarDecl>();
+	ArrayList<Command> commands = new ArrayList<Command>();
+	VarDecl auxVarDecl = null;
+	Command auxCommand = null;
+} {
 	<MAIN> <ACHV> 
-		SecVarDecl()
-		SecCommand()
+		(auxVarDecl = VarDecl() {decls.add(auxVarDecl);})*
+		(auxCommand = Command() {commands.add(auxCommand);})*
 	<FCHV>
+		{return new Main(decls, commands);}
 }
 
-void Func (): {}
-{
-	<FUNC> Type() Id() <APAR> ListArg() <FPAR> <ACHV>
-		SecVarDecl()
-		SecCommand()
+Func Func (): {
+	Type type = null;
+	String name = null;
+	ArrayList<Arg> args = null; // ListArg returns a ArrayList
+	ArrayList<VarDecl> decls = new ArrayList<VarDecl>();
+	ArrayList<Command> commands = new ArrayList<Command>();
+	Arg auxArg = null;
+	VarDecl auxVarDecl = null;
+	Command auxCommand = null;
+} {
+	<FUNC> type = Type() name = Id() <APAR> args = ListArg() <FPAR> <ACHV>
+		(auxVarDecl = VarDecl() {decls.add(auxVarDecl);})*
+		(auxCommand = Command() {commands.add(auxCommand);})*
 	<FCHV>
+		{return new Func(type, name, args, decls, commands);}
 }
 
-void SecVarDecl (): {}
-{
-	(<VAR> Type() Id() <FL>)*
+VarDecl VarDecl (): {
+	String id = null;
+	Type type = null;
+} {
+	<VAR> type = Type() id = Id() <FL>
+		{return new VarDecl(id, type);}
 }
 
-void ListArg (): {} { Type() Id() (<COMMA> Type() Id())* }
+ArrayList<Arg> ListArg (): {
+	ArrayList<Arg> args = new ArrayList<Arg>();
+	Arg auxArg = null;
+} {
+	auxArg = Arg() {args.add(auxArg);} (<COMMA> auxArg = Arg() {args.add(auxArg);})*
+		{return args;}
+}
 
-void SecCommand (): {}
+Arg Arg (): {
+	Type type = null;
+	String name = null;
+} {
+	type = Type() name = Id()
+		{return new Arg(type, name);}
+}
+
+Command Command (): {} // TODO: Implement Command class
 { (Id() ( <ATRIB> Exp() <FL> | <APAR> ListaExp() <FPAR> <FL>)
 	 | <IF> <APAR> Exp() <FPAR> BlocoComando() <FL>
 	 | <WHILE> <APAR> Exp() <FPAR> <DO> BlocoComando() <FL>
 	 | <DO> BlocoComando() <WHILE> <APAR> Exp() <FPAR> <FL>
 	 | <RETURN> Exp() <FL>
-	 | <PRINT> <APAR> Exp() <FPAR> <FL>)*
+	 | <PRINT> <APAR> Exp() <FPAR> <FL>)
+		{return new Command();} // TODO: Implement Command class
 }
 
 void ListaExp (): {} 
@@ -195,4 +269,4 @@ void Fator(): {}
   Id() (<APAR> ListaExp() <FPAR>)? | Literal() | <CONSTB>
 }
 
-void BlocoComando (): {} { <ACHV> SecCommand() <FCHV> }
+void BlocoComando (): {} { <ACHV> (Command())* <FCHV> }
