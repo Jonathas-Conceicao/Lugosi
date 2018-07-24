@@ -4,14 +4,30 @@ import java.util.ArrayList;
 
 public class Lugosi {
 	public static void main(String args[]) throws Exception{
+		if (args.length < 1) {
+			System.err.println("Invalid file");
+			System.exit(1);
+		}
 		FileInputStream fs = new FileInputStream(new File(args[0]));
 		Lugosi parser = new Lugosi(fs);
 		LugosiTree tree = parser.Lugosi();
 		pprint(tree);
 		geraCodigo(tree);
 	}
-	public static void pprint(LugosiTree prog){/* TODO: @Bretana pprint */}
-	public static void geraCodigo(LugosiTree prog){/* TODO: @Bretana Código em outra linguagem */}
+
+	
+
+	public static void pprint(LugosiTree prog){
+		/* TODO: @Bretana pprint */
+		
+		System.out.println(prog.main);
+		for (Func i : prog.funcs) 
+			System.out.println(i);
+	}
+
+	public static void geraCodigo(LugosiTree prog){
+		/* TODO: @Bretana Código em outra linguagem */
+	}
 }
 
 class LugosiTree {
@@ -22,6 +38,18 @@ class LugosiTree {
 		this.main = m;
 		this.funcs = f;
 	}
+	
+	@Override
+	public String toString() {
+		String res = "\n";
+		res += main.toString() + "\n";
+		for (Func f : this.funcs)
+			res += f.toString() + "\n";
+
+		return res;
+	}
+	
+
 }
 
 class Main {
@@ -32,6 +60,20 @@ class Main {
 		this.decls = d;
 		this.commands = c;
 	}
+
+	@Override
+	public String toString() {
+		String res = "main {\n";
+
+		for (VarDecl v : this.decls)
+			res += "\t" + v.toString() + "\n";
+		res += "\n";
+
+		for (Command c : this.commands)
+			res += "\t" + c.toString();
+
+		return res + "\n}";
+	}
 }
 
 class VarDecl {
@@ -41,6 +83,10 @@ class VarDecl {
 	VarDecl (String i, Type t) {
 		this.id = i;
 		this.type = t;
+	}
+	@Override
+	public String toString() {
+		return "var " + type.toString() + " " + id.toString() + ";";
 	}
 }
 
@@ -61,6 +107,28 @@ class Func {
 		this.decls = d;
 		this.commands = c;
 	}
+
+	@Override
+	public String toString() {
+		String res = "function " + this.type.toString() + " " + this.name + " (";
+		
+		for (Arg a : this.args)
+			res += a.toString() + ", ";
+		// replace last ',' with the ')'
+		res = res.substring(0, res.length() -3);
+		res += ")";;
+		
+		res += "{\n";
+		
+		for (VarDecl v : this.decls)
+			res += "\t" + v.toString() + "\n";
+		res += "\n";
+
+		for (Command c : this.commands)
+			res += "\t" + c.toString() + "\n";
+		
+		return res + "}";
+	}
 }
 
 class Arg {
@@ -71,6 +139,11 @@ class Arg {
 		this.type = t;
 		this.name = n;
 	}
+
+	@Override
+	public String toString() {
+		return type.toString() + " " + name;
+	}
 }
 
 interface Command {}
@@ -78,8 +151,20 @@ interface Type {}
 interface Exp {}
 interface Fator extends Exp {}
 
-class Int implements Type {}
-class Bool implements Type {}
+class Int implements Type {
+
+	@Override
+	public String toString() {
+		return "int";
+	}
+}
+class Bool implements Type {
+
+	@Override
+	public String toString() {
+		return "bool";
+	}
+}
 
 class Attribution implements Command {
 	String id;
@@ -89,40 +174,94 @@ class Attribution implements Command {
 		this.id = i;
 		this.exp = e;
 	}
+
+	@Override
+	public String toString() {
+		return id + " = " + exp.toString();
+	}
 }
 
 class FCall implements Command, Fator{
 	String id;
 	ArrayList<Exp> exps;
 	FCall (String i, ArrayList<Exp> e) {this.id = i;this.exps=e;}
+
+	@Override
+	public String toString() {
+		String res = id + "(";
+
+		if (this.exps != null) {
+			for (Exp e : this.exps) {
+				if (e != null) {
+					res += e.toString() + ", ";
+				}
+			}
+		}
+
+		return res + ");";
+	}
 }
 
 class If implements Command {
 	Exp bexp;
 	ArrayList<Command> cmds;
 	If (Exp b, ArrayList<Command> c) {this.bexp = b;this.cmds = c;}
+
+	@Override
+	public String toString() {
+		String res = "if (" + bexp.toString();
+		
+		for (Command c : cmds)
+			res += c;
+		return res;
+	}
 }
 
 class While implements Command {
 	Exp bexp;
 	ArrayList<Command> cmds;
 	While (Exp b, ArrayList<Command> c) {this.bexp = b;this.cmds = c;}
+
+	@Override
+	public String toString() {
+		String res = "while (" + bexp.toString();
+
+		for (Command c : cmds)
+			res += c.toString();
+
+		return res;
+	}
 }
 
 class Do implements Command {
 	Exp bexp;
 	ArrayList<Command> cmds;
 	Do (Exp b, ArrayList<Command> c) {this.bexp = b;this.cmds = c;}
+
+	@Override
+	public String toString() {
+		return "do{\n\tTODO: while\n}";
+	}
 }
 
 class Return implements Command {
 	Exp exp;
 	Return (Exp b) {this.exp = b;}
+
+	@Override
+	public String toString() {
+		return "return " + exp;
+	}
 }
 
 class Print implements Command {
 	Exp exp;
-  Print (Exp b) {this.exp = b;}
+	Print (Exp b) {this.exp = b;}
+
+	@Override
+	public String toString() {
+		return "print (" + exp + ");";
+	}
 }
 
 class OExp implements Exp {
@@ -133,15 +272,30 @@ class OExp implements Exp {
 		this.op = op;
 		this.b = b;
 	}
+
+	@Override
+	public String toString() {
+		return "\nTODO: OExp";
+	}
 }
 
 class Id implements Fator{
 	String id;
 	Id (String i) {this.id = i;}
+
+	@Override
+	public String toString(){
+		return id;
+	}
 }
 class Literal implements Fator{
 	int value; // TODO: (Maybe @Bretana) Implementar retorno de valores reais
 	Literal (int v) {this.value = v;}
+
+	@Override
+	public String toString(){
+		return value + "";
+	}
 }
 class True implements Fator{}
 class False implements Fator{}
