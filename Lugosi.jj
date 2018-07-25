@@ -425,7 +425,11 @@ class Literal implements Fator{
 	Integer value;
 	Integer decimal;
 	Integer expoent;
-	Literal (int v) {this.value = v;}
+	Literal (Integer v, Integer d, Integer e) {
+		this.value = v;
+		this.decimal = d;
+		this.expoent = e;
+	}
 
 	@Override
 	public String toString(){
@@ -569,8 +573,8 @@ Literal Literal (): {
 	Integer decimal = null;
 	Integer expoent = null;
 } {
-	digits = Digits() FracaoOpt() ExpOpt()
-		{return new Literal(digits);}
+	digits = Digits() decimal = FracaoOpt() expoent = ExpOpt()
+		{return new Literal(digits, decimal, expoent);}
 }
 
 Type Type (): {
