@@ -1,6 +1,6 @@
 main {
   var int i;
-  x := 10E-10;
+  x := 10,1E-10;
   while ((x > 0)) do {
     print(x);
     x := (x - 1);
