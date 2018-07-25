@@ -21,11 +21,12 @@ public class Lugosi {
 	public static void pprint(LugosiTree prog){
 		/* TODO: @Bretana pprint */
 		
-		System.out.println(prog);
+		//System.out.println(prog);
 	}
 
 	public static void geraCodigo(LugosiTree prog){
 		/* TODO: @Bretana Código em outra linguagem */
+		System.out.println(prog.toCode());
 	}
 }
 
@@ -47,8 +48,15 @@ class LugosiTree {
 
 		return res;
 	}
-	
 
+	public String toCode() {
+		String res = "\n";
+		res += main.toCode() + "\n";
+		for (Func f : this.funcs)
+			res += f.toCode() + "\n";
+
+		return res;
+	}
 }
 
 class Main {
@@ -73,6 +81,19 @@ class Main {
 
 		return res + "\n}";
 	}
+
+	public String toCode() {
+		String res = "main {\n";
+
+		for (VarDecl v : this.decls)
+			res += "" + v.toCode() + "\n";
+		res += "\n";
+
+		for (Command c : this.commands)
+			res += "\n" + c.toString();
+
+		return res + "\n}";
+	}
 }
 
 class VarDecl {
@@ -86,6 +107,10 @@ class VarDecl {
 	@Override
 	public String toString() {
 		return "var " + type.toString() + " " + id.toString() + ";";
+	}
+
+	public String toCode() {
+		return type.toString() + " " + id + ";";
 	}
 }
 
@@ -128,6 +153,27 @@ class Func {
 		
 		return res + "}";
 	}
+
+	public String toCode() {
+		String res = "function " + this.type.toString() + " " + this.name + " (";
+		
+		for (Arg a : this.args)
+			res += a.toCode() + ", ";
+		// replace last ',' with the ')'
+		res = res.substring(0, res.length() -2);
+		res += ")";;
+		
+		res += "{\n";
+		
+		for (VarDecl v : this.decls)
+			res += "" + v.toCode() + "\n";
+		res += "\n";
+
+		for (Command c : this.commands)
+			res += "" + c.toString() + "\n";
+		
+		return res + "}";
+	}
 }
 
 class Arg {
@@ -143,6 +189,10 @@ class Arg {
 	public String toString() {
 		return type.toString() + " " + name;
 	}
+
+	public String toCode() {
+		return type.toString() + " " + name;
+	}
 }
 
 interface Command {}
@@ -156,11 +206,19 @@ class Int implements Type {
 	public String toString() {
 		return "int";
 	}
+
+	public String toCode() {
+		return "int";
+	}
 }
 class Bool implements Type {
 
 	@Override
 	public String toString() {
+		return "bool";
+	}
+
+	public String toCode() {
 		return "bool";
 	}
 }
@@ -178,6 +236,10 @@ class Attribution implements Command {
 	public String toString() {
 		return id + " = " + exp.toString();
 	}
+
+	public String toCode() {
+		return id + " = " + exp.toString();
+	}
 }
 
 class FCall implements Command, Fator{
@@ -187,6 +249,20 @@ class FCall implements Command, Fator{
 
 	@Override
 	public String toString() {
+		String res = id + "(";
+
+		if (this.exps != null) {
+			for (Exp e : this.exps) {
+				if (e != null) {
+					res += e.toString() + ", ";
+				}
+			}
+		}
+
+		return res + ");";
+	}
+
+	public String toCode() {
 		String res = id + "(";
 
 		if (this.exps != null) {
@@ -214,6 +290,14 @@ class If implements Command {
 			res += c;
 		return res;
 	}
+
+	public String toCode() {
+		String res = "if (" + bexp.toString();
+		
+		for (Command c : cmds)
+			res += c;
+		return res;
+	}
 }
 
 class While implements Command {
@@ -229,6 +313,15 @@ class While implements Command {
 			res += "\n" + c.toString();
 
 		return res + "\n};";
+	}
+
+	public String toCode() {
+		String res = "while (" + bexp.toString() + ") {";
+
+		for (Command c : cmds)
+			res += "\n" + c.toString();
+
+		return res + "\n}";
 	}
 }
 
@@ -246,6 +339,15 @@ class Do implements Command {
 
     return res + "} while (" + bexp.toString() + ")";
 	}
+
+	public String toCode() {
+    String res = "do {";
+
+		for (Command c : this.cmds)
+			res += "\n" + c.toString() + ";";
+
+    return res + "} while (" + bexp.toString() + ")";
+	}
 }
 
 class Return implements Command {
@@ -256,6 +358,10 @@ class Return implements Command {
 	public String toString() {
 		return "return " + exp + ";";
 	}
+
+	public String toCode() {
+		return "return " + exp + ";";
+	}
 }
 
 class Print implements Command {
@@ -264,6 +370,10 @@ class Print implements Command {
 
 	@Override
 	public String toString() {
+		return "print (" + exp + ");";
+	}
+
+	public String toCode() {
 		return "print (" + exp + ");";
 	}
 }
@@ -281,6 +391,10 @@ class OExp implements Exp {
 	public String toString() {
 		return "( " + a.toString() + " " + op + " " + b.toString() + " )";
 	}
+
+	public String toCode() {
+		return "( " + a.toString() + " " + op + " " + b.toString() + " )";
+	}
 }
 
 class Id implements Fator{
@@ -289,6 +403,10 @@ class Id implements Fator{
 
 	@Override
 	public String toString(){
+		return id;
+	}
+
+	public String toCode() {
 		return id;
 	}
 }
@@ -300,17 +418,29 @@ class Literal implements Fator{
 	public String toString(){
 		return value + "";
 	}
+
+	public String toCode() {
+		return value + "";
+	}
 }
 class True implements Fator{
 	@Override
 	public String toString() {
 		return "true";
 	}
+
+	public String toCode() {
+		return "true";
+	}
 }
 class False implements Fator{
 	@Override
 	public String toString() {
-		return "true";
+		return "false";
+	}
+
+	public String toCode() {
+		return "false";
 	}
 }
 
