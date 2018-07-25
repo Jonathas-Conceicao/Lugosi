@@ -19,13 +19,12 @@ public class Lugosi {
 	
 
 	public static void pprint(LugosiTree prog){
-		/* TODO: @Bretana pprint */
-		
-		//System.out.println(prog);
+		System.out.println("\\\\ PrettyPrinted Code");
+		System.out.println(prog);
 	}
 
 	public static void geraCodigo(LugosiTree prog){
-		/* TODO: @Bretana Código em outra linguagem */
+		System.out.println("\\\\ C Code");
 		System.out.println(prog.toCode());
 	}
 }
@@ -343,21 +342,21 @@ class Do implements Command {
 
 	@Override
 	public String toString() {
-    String res = "do {";
+		String res = "do {";
 
 		for (Command c : this.cmds)
-			res += "\n" + c.toString() + ";";
+			res += "\n" + c.toString();
 
-    return res + "} while (" + bexp.toString() + ")";
+		return res + "\n} while (" + bexp.toString() + ");";
 	}
 
 	public String toCode() {
-    String res = "do {";
+		String res = "do {";
 
 		for (Command c : this.cmds)
-			res += "\n" + c.toCode() + ";";
+			res += "\n" + c.toCode();
 
-    return res + "} while (" + bexp.toCode() + ")";
+		return res + "\n} while (" + bexp.toCode() + ");";
 	}
 }
 
@@ -421,6 +420,7 @@ class Id implements Fator{
 		return id;
 	}
 }
+
 class Literal implements Fator{
 	Integer value;
 	Integer decimal;
@@ -436,6 +436,7 @@ class Literal implements Fator{
 		return value + "";
 	}
 }
+
 class True implements Fator{
 	@Override
 	public String toString() {
@@ -446,6 +447,7 @@ class True implements Fator{
 		return "!0";
 	}
 }
+
 class False implements Fator{
 	@Override
 	public String toString() {

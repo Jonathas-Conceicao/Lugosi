@@ -26,7 +26,7 @@ run: build/bin/$(MAIN_CLASS).class
 
 tests: build/bin/$(MAIN_CLASS).class
 	@echo -e "$(LCYAN) Running Ok Tests$(DEFAULT)";   \
-	for ((i=1;i<=3;i++));                             \
+	for ((i=1;i<=4;i++));                             \
 		do make $S run FILE=tests/OK$$i.lug;            \
 	done;                                             \
 	echo -e "$(RED) Running notOk Tests$(DEFAULT)";   \
