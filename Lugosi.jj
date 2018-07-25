@@ -83,16 +83,19 @@ class Main {
 	}
 
 	public String toCode() {
-		String res = "main {\n";
+		String res = "int main (int argc, char **argv) {\n";
+		Boolean hasRet = false;
 
 		for (VarDecl v : this.decls)
 			res += "" + v.toCode() + "\n";
 		res += "\n";
 
-		for (Command c : this.commands)
-			res += "\n" + c.toString();
+		for (Command c : this.commands) {
+			res += "\n" + c.toCode();
+			hasRet |= (c instanceof Return);
+		}
 
-		return res + "\n}";
+		return res + (hasRet ? "" : "\nreturn 0;") + "\n}";
 	}
 }
 
@@ -110,7 +113,7 @@ class VarDecl {
 	}
 
 	public String toCode() {
-		return type.toString() + " " + id + ";";
+		return type.toCode() + " " + id + ";";
 	}
 }
 
@@ -155,7 +158,7 @@ class Func {
 	}
 
 	public String toCode() {
-		String res = "function " + this.type.toString() + " " + this.name + " (";
+		String res = this.type.toCode() + " " + this.name + " (";
 		
 		for (Arg a : this.args)
 			res += a.toCode() + ", ";
@@ -170,7 +173,7 @@ class Func {
 		res += "\n";
 
 		for (Command c : this.commands)
-			res += "" + c.toString() + "\n";
+			res += "" + c.toCode() + "\n";
 		
 		return res + "}";
 	}
@@ -191,14 +194,22 @@ class Arg {
 	}
 
 	public String toCode() {
-		return type.toString() + " " + name;
+		return type.toCode() + " " + name;
 	}
 }
 
-interface Command {}
-interface Type {}
-interface Exp {}
-interface Fator extends Exp {}
+interface Command {
+	public String toCode();
+}
+interface Type {
+	public String toCode();
+}
+interface Exp {
+	public String toCode();
+}
+interface Fator extends Exp {
+	public String toCode();
+}
 
 class Int implements Type {
 
@@ -238,7 +249,7 @@ class Attribution implements Command {
 	}
 
 	public String toCode() {
-		return id + " = " + exp.toString();
+		return id + " = " + exp.toCode() + ";";
 	}
 }
 
@@ -268,7 +279,7 @@ class FCall implements Command, Fator {
 		if (this.exps != null) {
 			for (Exp e : this.exps) {
 				if (e != null) {
-					res += e.toString() + ", ";
+					res += e.toCode() + ", ";
 				}
 			}
 		}
@@ -292,7 +303,7 @@ class If implements Command {
 	}
 
 	public String toCode() {
-		String res = "if (" + bexp.toString();
+		String res = "if (" + bexp.toCode();
 		
 		for (Command c : cmds)
 			res += c;
@@ -316,10 +327,10 @@ class While implements Command {
 	}
 
 	public String toCode() {
-		String res = "while (" + bexp.toString() + ") {";
+		String res = "while (" + bexp.toCode() + ") {";
 
 		for (Command c : cmds)
-			res += "\n" + c.toString();
+			res += "\n" + c.toCode();
 
 		return res + "\n}";
 	}
@@ -344,9 +355,9 @@ class Do implements Command {
     String res = "do {";
 
 		for (Command c : this.cmds)
-			res += "\n" + c.toString() + ";";
+			res += "\n" + c.toCode() + ";";
 
-    return res + "} while (" + bexp.toString() + ")";
+    return res + "} while (" + bexp.toCode() + ")";
 	}
 }
 
@@ -374,7 +385,7 @@ class Print implements Command {
 	}
 
 	public String toCode() {
-		return "print (" + exp + ");";
+		return "printf(\"%f\", " + exp + ");";
 	}
 }
 
@@ -393,7 +404,7 @@ class OExp implements Exp {
 	}
 
 	public String toCode() {
-		return "( " + a.toString() + " " + op + " " + b.toString() + " )";
+		return "( " + a.toCode() + " " + op + " " + b.toCode() + " )";
 	}
 }
 
@@ -432,7 +443,7 @@ class True implements Fator{
 	}
 
 	public String toCode() {
-		return "true";
+		return "!0";
 	}
 }
 class False implements Fator{
@@ -442,7 +453,7 @@ class False implements Fator{
 	}
 
 	public String toCode() {
-		return "false";
+		return "0";
 	}
 }
 
