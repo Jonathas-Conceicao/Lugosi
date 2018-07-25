@@ -180,7 +180,7 @@ class Attribution implements Command {
 	}
 }
 
-class FCall implements Command, Fator{
+class FCall implements Command, Fator {
 	String id;
 	ArrayList<Exp> exps;
 	FCall (String i, ArrayList<Exp> e) {this.id = i;this.exps=e;}
@@ -293,7 +293,9 @@ class Id implements Fator{
 	}
 }
 class Literal implements Fator{
-	int value; // TODO: (Maybe @Bretana) Implementar retorno de valores reais
+	Integer value;
+	Integer decimal;
+	Integer expoent;
 	Literal (int v) {this.value = v;}
 
 	@Override
@@ -368,22 +370,27 @@ String Op (): {Token t;}
 	| t = <plus> {return t.image;}
 }
 
-int Digits (): {
+Integer Digits (): {
+	Integer value;
 	String sDig = "";
 	Token t;
 } { 
 	(t =<digito> {sDig += t.image;})+
-		{return Integer.parseInt(sDig);}
+		{return new Integer(Integer.parseInt(sDig));}
 }
 
-void FracaoOpt (): {}
-{
-  (<COMMA> Digits())?
+Integer FracaoOpt (): {
+	Integer v = null;
+} {
+	(<COMMA> v = Digits())? {return v;}
 }
 
-void ExpOpt (): {}
-{
-  (<e>(<plus> | <minus>)? Digits())?
+Integer ExpOpt (): {
+	Integer v = null;
+	int sing = 1;
+} {
+	(<e>(<plus> | <minus> {sing=-1;})? v = Digits() {v *= sing;})?
+		{return v;}
 }
 
 String AlphaNumeric (): {
@@ -414,8 +421,10 @@ String Id (): {
 		{return id;}
 }
 
-Literal Literal (): { // TODO: (Maybe @Bretana) Implementar retorno de valores reais
-	int digits;
+Literal Literal (): {
+	Integer digits;
+	Integer decimal = null;
+	Integer expoent = null;
 } {
 	digits = Digits() FracaoOpt() ExpOpt()
 		{return new Literal(digits);}
@@ -538,7 +547,7 @@ Fator Fator(): {
 	Literal l;
 	Token t;
 } {
-  id = Id() (<APAR> exps = ListaExp() <FPAR>)? {return new FCall(id, exps);}
+	id = Id() (<APAR> exps = ListaExp() <FPAR>)? {return (exps == null) ? new Id(id) : new FCall(id, exps);}
 	| l = Literal() {return l;}
 	| t = <CONSTB> {return t.image.equals("true") ? new True() : new False();}
 }
