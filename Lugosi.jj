@@ -37,7 +37,7 @@ class LugosiTree {
 		this.main = m;
 		this.funcs = f;
 	}
-	
+
 	@Override
 	public String toString() {
 		String res = "\n";
@@ -244,7 +244,7 @@ class Attribution implements Command {
 
 	@Override
 	public String toString() {
-		return id + " = " + exp.toString();
+		return id + " = " + exp.toString() + ";";
 	}
 
 	public String toCode() {
@@ -433,11 +433,11 @@ class Literal implements Fator{
 
 	@Override
 	public String toString(){
-		return value + "";
+		return "" + value + (decimal != null ? "," + decimal : "") + (expoent!= null ? "E" + expoent : "");
 	}
 
 	public String toCode() {
-		return value + "";
+		return "" + value + (decimal != null ? "." + decimal : "") + (expoent != null ? "E" + expoent : "");
 	}
 }
 
